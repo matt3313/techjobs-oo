@@ -1,5 +1,6 @@
 package org.launchcode.controllers;
 
+import org.launchcode.models.Job;
 import org.launchcode.models.forms.JobForm;
 import org.launchcode.models.data.JobData;
 import org.springframework.stereotype.Controller;
@@ -23,7 +24,9 @@ public class JobController {
     @RequestMapping(value = "", method = RequestMethod.GET)
     public String index(Model model, int id) {
 
-        // TODO #1 - get the Job with the given ID and pass it into the view
+        model.addAttribute("title", "Job Detail");
+        model.addAttribute("job", jobData.findById(id));
+
 
         return "job-detail";
     }
@@ -31,17 +34,43 @@ public class JobController {
     @RequestMapping(value = "add", method = RequestMethod.GET)
     public String add(Model model) {
         model.addAttribute(new JobForm());
+        model.addAttribute("title","Add Job");
         return "new-job";
     }
 
     @RequestMapping(value = "add", method = RequestMethod.POST)
     public String add(Model model, @Valid JobForm jobForm, Errors errors) {
 
+        if (errors.hasErrors()){
+            return "new-job";
+        }
+
+        Job job = new Job();
+
+
+        job.setName(jobForm.getName());
+        //job = new Job(jobForm.getName(),);
+        job.setEmployer(
+                jobData.getEmployers().findById(jobForm.getEmployerId())
+        );
+        job.setLocation(
+                jobData.getLocations().findById(jobForm.getLocationId())
+        );
+        job.setCoreCompetency(
+                jobData.getCoreCompetencies().findById(jobForm.getCoreCompetencyId())
+        );
+        job.setPositionType(
+                jobData.getPositionTypes().findById(jobForm.getPositionTypeId())
+        );
+
+        jobData.add(job);
         // TODO #6 - Validate the JobForm model, and if valid, create a
         // new Job and add it to the jobData data store. Then
         // redirect to the job detail view for the new Job.
 
-        return "";
+        model.addAttribute("job",job);
+
+        return "redirect:?id=" + job.getId();
 
     }
 }
